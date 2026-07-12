@@ -1,6 +1,7 @@
 import { IPaymentGateway } from '../../interface/services/payment-gateway.service.interface';
 import { IProductRepository } from '../../interface/services/product.repository.interface';
 import { ITransactionRepository } from '../../interface/services/transaction.repository.interface';
+import { DeliveryStatus } from '../../model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../model/enum/transaction-status.enum';
 import { TransactionNotFoundException } from '../../model/exceptions/transaction-not-found.exception';
 import { Transaction } from '../../model/types/transaction.type';
@@ -33,14 +34,18 @@ export class GetTransactionStatusUseCase {
       return transaction;
     }
 
+    const isApproved = payment.status === TransactionStatus.APPROVED;
     const updated: Transaction = {
       ...transaction,
       status: payment.status,
+      deliveryStatus: isApproved
+        ? DeliveryStatus.ASSIGNED
+        : transaction.deliveryStatus,
       updatedAt: new Date(),
     };
     await this.transactionRepository.save(updated);
 
-    if (updated.status === TransactionStatus.APPROVED) {
+    if (isApproved) {
       await this.deliverProduct(updated.productId, updated.quantity);
     }
 

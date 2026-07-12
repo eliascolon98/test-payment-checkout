@@ -1,6 +1,7 @@
 import { type IPaymentGateway } from '../../interface/services/payment-gateway.service.interface';
 import { type IProductRepository } from '../../interface/services/product.repository.interface';
 import { type ITransactionRepository } from '../../interface/services/transaction.repository.interface';
+import { DeliveryStatus } from '../../model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../model/enum/transaction-status.enum';
 import { InsufficientStockException } from '../../model/exceptions/insufficient-stock.exception';
 import { PaymentGatewayException } from '../../model/exceptions/payment-gateway.exception';
@@ -106,9 +107,12 @@ describe('CreatePaymentUseCase', () => {
     expect(firstSave.amountInCents).toBe(200000);
     expect(firstSave.cardLastFour).toBe('4242');
     expect(firstSave.cardBrand).toBe('VISA');
+    expect(firstSave.customerEmail).toBe('customer@test.com');
+    expect(firstSave.deliveryStatus).toBe(DeliveryStatus.NOT_ASSIGNED);
 
     expect(result.status).toBe(TransactionStatus.APPROVED);
     expect(result.externalId).toBe('ext-1');
+    expect(result.deliveryStatus).toBe(DeliveryStatus.ASSIGNED);
     expect(transactionRepository.save).toHaveBeenCalledTimes(2);
     expect(productRepository.updateStock).toHaveBeenCalledWith('product-1', 3);
   });
@@ -130,6 +134,7 @@ describe('CreatePaymentUseCase', () => {
 
     expect(result.status).toBe(TransactionStatus.PENDING);
     expect(result.externalId).toBe('ext-1');
+    expect(result.deliveryStatus).toBe(DeliveryStatus.NOT_ASSIGNED);
     expect(productRepository.updateStock).not.toHaveBeenCalled();
   });
 

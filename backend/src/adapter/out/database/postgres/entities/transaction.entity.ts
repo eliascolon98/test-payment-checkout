@@ -5,6 +5,7 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { DeliveryStatus } from '../../../../../domain/model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../../../../domain/model/enum/transaction-status.enum';
 
 @Entity('transactions')
@@ -32,6 +33,17 @@ export class TransactionEntity {
 
   @Column({ name: 'card_brand' })
   cardBrand!: string;
+
+  @Column({ name: 'customer_email' })
+  customerEmail!: string;
+
+  @Column({
+    name: 'delivery_status',
+    type: 'enum',
+    enum: DeliveryStatus,
+    default: DeliveryStatus.NOT_ASSIGNED,
+  })
+  deliveryStatus!: DeliveryStatus;
 
   @Column({
     type: 'enum',

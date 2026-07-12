@@ -1,3 +1,4 @@
+import { DeliveryStatus } from '../../domain/model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../domain/model/enum/transaction-status.enum';
 import { Transaction } from '../../domain/model/types/transaction.type';
 import { CreatePaymentUseCase } from '../../domain/usecase/transactions/create-payment.usecase';
@@ -20,6 +21,8 @@ describe('CreatePaymentHandler', () => {
     currency: 'COP',
     cardLastFour: '4242',
     cardBrand: 'VISA',
+    customerEmail: 'customer@test.com',
+    deliveryStatus: DeliveryStatus.NOT_ASSIGNED,
     status: TransactionStatus.PENDING,
     externalId: 'ext-1',
     createdAt: new Date('2026-01-01'),

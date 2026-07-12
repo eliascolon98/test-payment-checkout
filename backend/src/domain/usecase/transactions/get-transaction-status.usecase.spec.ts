@@ -1,6 +1,7 @@
 import { type IPaymentGateway } from '../../interface/services/payment-gateway.service.interface';
 import { type IProductRepository } from '../../interface/services/product.repository.interface';
 import { type ITransactionRepository } from '../../interface/services/transaction.repository.interface';
+import { DeliveryStatus } from '../../model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../model/enum/transaction-status.enum';
 import { TransactionNotFoundException } from '../../model/exceptions/transaction-not-found.exception';
 import { Transaction } from '../../model/types/transaction.type';
@@ -39,6 +40,8 @@ describe('GetTransactionStatusUseCase', () => {
     currency: 'COP',
     cardLastFour: '4242',
     cardBrand: 'VISA',
+    customerEmail: 'customer@test.com',
+    deliveryStatus: DeliveryStatus.NOT_ASSIGNED,
     status: TransactionStatus.PENDING,
     externalId: 'ext-1',
     createdAt: new Date('2026-01-01'),
@@ -115,6 +118,7 @@ describe('GetTransactionStatusUseCase', () => {
     const result = await useCase.execute('tx-1');
 
     expect(result.status).toBe(TransactionStatus.APPROVED);
+    expect(result.deliveryStatus).toBe(DeliveryStatus.ASSIGNED);
     expect(transactionRepository.save).toHaveBeenCalledTimes(1);
     expect(productRepository.updateStock).toHaveBeenCalledWith('product-1', 3);
   });
@@ -131,6 +135,7 @@ describe('GetTransactionStatusUseCase', () => {
     const result = await useCase.execute('tx-1');
 
     expect(result.status).toBe(TransactionStatus.DECLINED);
+    expect(result.deliveryStatus).toBe(DeliveryStatus.NOT_ASSIGNED);
     expect(productRepository.updateStock).not.toHaveBeenCalled();
   });
 

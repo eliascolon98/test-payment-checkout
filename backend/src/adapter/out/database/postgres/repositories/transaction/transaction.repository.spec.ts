@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
+import { DeliveryStatus } from '../../../../../../domain/model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../../../../../domain/model/enum/transaction-status.enum';
 import { Transaction } from '../../../../../../domain/model/types/transaction.type';
 import { TransactionEntity } from '../../entities/transaction.entity';
@@ -25,6 +26,8 @@ describe('TransactionRepository', () => {
     currency: 'COP',
     cardLastFour: '4242',
     cardBrand: 'VISA',
+    customerEmail: 'customer@test.com',
+    deliveryStatus: DeliveryStatus.NOT_ASSIGNED,
     status: TransactionStatus.PENDING,
     externalId: null,
     createdAt: new Date('2026-01-01'),

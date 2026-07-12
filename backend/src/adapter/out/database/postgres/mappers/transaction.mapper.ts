@@ -12,6 +12,8 @@ export class TransactionMapper {
       currency: entity.currency,
       cardLastFour: entity.cardLastFour,
       cardBrand: entity.cardBrand,
+      customerEmail: entity.customerEmail,
+      deliveryStatus: entity.deliveryStatus,
       status: entity.status,
       externalId: entity.externalId,
       createdAt: entity.createdAt,
@@ -29,6 +31,8 @@ export class TransactionMapper {
     entity.currency = domain.currency;
     entity.cardLastFour = domain.cardLastFour;
     entity.cardBrand = domain.cardBrand;
+    entity.customerEmail = domain.customerEmail;
+    entity.deliveryStatus = domain.deliveryStatus;
     entity.status = domain.status;
     entity.externalId = domain.externalId;
     entity.createdAt = domain.createdAt;

@@ -4,6 +4,7 @@ import { ILogger } from '../../interface/logger.interface';
 import { IPaymentGateway } from '../../interface/services/payment-gateway.service.interface';
 import { IProductRepository } from '../../interface/services/product.repository.interface';
 import { ITransactionRepository } from '../../interface/services/transaction.repository.interface';
+import { DeliveryStatus } from '../../model/enum/delivery-status.enum';
 import { TransactionStatus } from '../../model/enum/transaction-status.enum';
 import { InsufficientStockException } from '../../model/exceptions/insufficient-stock.exception';
 import { PaymentGatewayException } from '../../model/exceptions/payment-gateway.exception';
@@ -35,6 +36,8 @@ export class CreatePaymentUseCase {
       currency: 'COP',
       cardLastFour: input.card.number.slice(-4),
       cardBrand: detectCardBrand(input.card.number),
+      customerEmail: input.customerEmail,
+      deliveryStatus: DeliveryStatus.NOT_ASSIGNED,
       status: TransactionStatus.PENDING,
       externalId: null,
       createdAt: new Date(),
@@ -67,14 +70,15 @@ export class CreatePaymentUseCase {
       throw new PaymentGatewayException();
     }
 
-    await this.transactionRepository.save(transaction);
-
     if (transaction.status === TransactionStatus.APPROVED) {
+      transaction = { ...transaction, deliveryStatus: DeliveryStatus.ASSIGNED };
       await this.productRepository.updateStock(
         product.id,
         product.stock - transaction.quantity,
       );
     }
+
+    await this.transactionRepository.save(transaction);
 
     return transaction;
   }
