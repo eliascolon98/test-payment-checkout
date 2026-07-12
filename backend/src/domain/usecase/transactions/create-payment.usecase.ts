@@ -1,0 +1,101 @@
+import { randomUUID } from 'node:crypto';
+import { detectCardBrand } from '../../common/card-brand.util';
+import { ILogger } from '../../interface/logger.interface';
+import { IPaymentGateway } from '../../interface/services/payment-gateway.service.interface';
+import { IProductRepository } from '../../interface/services/product.repository.interface';
+import { ITransactionRepository } from '../../interface/services/transaction.repository.interface';
+import { DeliveryStatus } from '../../model/enum/delivery-status.enum';
+import { TransactionStatus } from '../../model/enum/transaction-status.enum';
+import { InsufficientStockException } from '../../model/exceptions/insufficient-stock.exception';
+import { PaymentGatewayException } from '../../model/exceptions/payment-gateway.exception';
+import { ProductNotFoundException } from '../../model/exceptions/product-not-found.exception';
+import { CreateTransactionInput } from '../../model/types/create-transaction.type';
+import { Product } from '../../model/types/product.type';
+import { Transaction } from '../../model/types/transaction.type';
+
+export class CreatePaymentUseCase {
+  constructor(
+    private readonly productRepository: IProductRepository,
+    private readonly transactionRepository: ITransactionRepository,
+    private readonly paymentGateway: IPaymentGateway,
+    private readonly logger?: ILogger,
+  ) {}
+
+  async execute(input: CreateTransactionInput): Promise<Transaction> {
+    const product = await this.findProductWithStock(
+      input.productId,
+      input.quantity,
+    );
+
+    let transaction: Transaction = {
+      id: randomUUID(),
+      reference: `TX-${randomUUID()}`,
+      productId: product.id,
+      quantity: input.quantity,
+      amountInCents: product.price * input.quantity,
+      currency: 'COP',
+      cardLastFour: input.card.number.slice(-4),
+      cardBrand: detectCardBrand(input.card.number),
+      customerEmail: input.customerEmail,
+      deliveryStatus: DeliveryStatus.NOT_ASSIGNED,
+      status: TransactionStatus.PENDING,
+      externalId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    await this.transactionRepository.save(transaction);
+
+    try {
+      const token = await this.paymentGateway.tokenizeCard(input.card);
+      const payment = await this.paymentGateway.createPayment({
+        reference: transaction.reference,
+        amountInCents: transaction.amountInCents,
+        currency: transaction.currency,
+        cardToken: token.tokenId,
+        installments: input.installments,
+        customerEmail: input.customerEmail,
+      });
+
+      transaction = {
+        ...transaction,
+        externalId: payment.externalId,
+        status: payment.status,
+        updatedAt: new Date(),
+      };
+    } catch (error) {
+      this.logger?.error(
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      await this.transactionRepository.delete(transaction.id);
+      throw new PaymentGatewayException();
+    }
+
+    if (transaction.status === TransactionStatus.APPROVED) {
+      transaction = { ...transaction, deliveryStatus: DeliveryStatus.ASSIGNED };
+      await this.productRepository.updateStock(
+        product.id,
+        product.stock - transaction.quantity,
+      );
+    }
+
+    await this.transactionRepository.save(transaction);
+
+    return transaction;
+  }
+
+  private async findProductWithStock(
+    productId: string,
+    quantity: number,
+  ): Promise<Product> {
+    const product = await this.productRepository.findById(productId);
+
+    if (!product) {
+      throw new ProductNotFoundException(productId);
+    }
+    if (product.stock < quantity) {
+      throw new InsufficientStockException(productId, product.stock, quantity);
+    }
+
+    return product;
+  }
+}
