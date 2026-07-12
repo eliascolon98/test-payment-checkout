@@ -2,15 +2,77 @@
 
 Full-stack credit card payment checkout:
 
-- **[`backend/`](backend/README.md)** — NestJS + TypeScript API with hexagonal architecture. Product catalog, payment processing against the provider sandbox, transaction status tracking, stock management and delivery assignment. Unit tested with Jest (>80% coverage). See the [backend README](backend/README.md) for setup, running and test instructions.
+- **`backend/`** — NestJS + TypeScript API with hexagonal architecture (ports & adapters). Product catalog, payment processing against the provider sandbox, transaction status tracking, stock management and delivery assignment.
 - **`mobile/`** — React Native app with the 7-step checkout flow (splash, product catalog, product selection, checkout, credit card form, payment summary and final status). _In progress._
 
-## Quick start
+## Backend
+
+### Requirements
+
+- Node.js 22+
+- Docker (for PostgreSQL)
+
+### Setup & run
 
 ```bash
 cd backend
 npm install
-cp .env.example .env   # fill in the sandbox keys
-docker compose up -d
-npm run start:dev      # API on http://localhost:3001 — Swagger at /api/docs
+cp .env.example .env   # fill in the sandbox API keys
+docker compose up -d   # PostgreSQL on port 5433
+npm run start:dev      # API on http://localhost:3001
 ```
+
+Products are seeded automatically on first boot. Interactive API docs (Swagger): **`http://localhost:3001/api/docs`**
+
+Fully containerized alternative (production Dockerfile):
+
+```bash
+docker compose --profile full up -d --build
+```
+
+### API
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `GET` | `/products` | Product catalog with current stock |
+| `POST` | `/transactions` | Create a card payment (creates PENDING, calls the provider, assigns product and updates stock on approval) |
+| `GET` | `/transactions/:id` | Transaction status; refreshes against the provider while `PENDING` |
+
+### Payment flow
+
+1. Validates the product and its stock.
+2. Creates an internal transaction in `PENDING` with a unique reference.
+3. Tokenizes the card and requests the payment to the provider (SHA-256 integrity signature + fresh acceptance token).
+4. On provider failure the transaction is rolled back and a `502` is returned.
+5. On approval (immediately or via polling `GET /transactions/:id`) the product is assigned to the customer (`deliveryStatus: ASSIGNED`) and the stock is decreased.
+
+## Backend tests
+
+Unit tests with Jest. All external boundaries (payment provider, database, config) are mocked — no network or database needed.
+
+```bash
+cd backend
+npm test           # run the suite
+npm run test:cov   # run with coverage
+```
+
+### Results
+
+```
+Test Suites: 21 passed, 21 total
+Tests:       72 passed, 72 total
+```
+
+| Metric | Coverage |
+|---|---|
+| Statements | **100%** |
+| Branches | **82.39%** |
+| Functions | **100%** |
+| Lines | **100%** |
+
+> Coverage excludes only wiring files with no logic (`*.module.ts`, `main.ts` and `index.ts` barrels). Remaining uncovered branches come from decorator metadata counted by istanbul.
+
+## Mobile app
+
+_In progress — instructions and test results will be added here._
