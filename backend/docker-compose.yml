@@ -12,5 +12,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  api:
+    build: .
+    container_name: payment-checkout-api
+    restart: unless-stopped
+    profiles:
+      - full
+    depends_on:
+      - postgres
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/payment_checkout
+      PORT: 3001
+    ports:
+      - '3001:3001'
+
 volumes:
   postgres_data:
