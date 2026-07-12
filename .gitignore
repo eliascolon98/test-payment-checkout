@@ -20,4 +20,4 @@ coverage/
 
 # Logs
 *.log
-npm-debug.log*
+npm-debug.log*.vscode-upload.json
