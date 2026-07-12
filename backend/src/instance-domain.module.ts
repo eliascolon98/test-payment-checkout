@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HealthController } from './adapter/in/http/health.controller';
+import { LoggerService } from './common/logger/logger.service';
 import { ProductsController } from './adapter/in/http/products/products.controller';
 import { TransactionsController } from './adapter/in/http/transactions/transactions.controller';
 import { PostgresModule } from './adapter/out/database/postgres/postgres.module';
@@ -35,6 +36,7 @@ import { GetTransactionStatusHandler } from './handler/transactions/get-transact
           productRepository,
           transactionRepository,
           paymentGateway,
+          new LoggerService(CreatePaymentUseCase.name),
         ),
       inject: [
         ProductRepository,

@@ -3,6 +3,7 @@ import { type IProductRepository } from '../../interface/services/product.reposi
 import { type ITransactionRepository } from '../../interface/services/transaction.repository.interface';
 import { TransactionStatus } from '../../model/enum/transaction-status.enum';
 import { InsufficientStockException } from '../../model/exceptions/insufficient-stock.exception';
+import { PaymentGatewayException } from '../../model/exceptions/payment-gateway.exception';
 import { ProductNotFoundException } from '../../model/exceptions/product-not-found.exception';
 import { CreateTransactionInput } from '../../model/types/create-transaction.type';
 import { Product } from '../../model/types/product.type';
@@ -19,6 +20,7 @@ describe('CreatePaymentUseCase', () => {
     save: jest.fn(),
     findById: jest.fn(),
     findByReference: jest.fn(),
+    delete: jest.fn(),
   };
   const paymentGateway: jest.Mocked<IPaymentGateway> = {
     tokenizeCard: jest.fn(),
@@ -26,10 +28,17 @@ describe('CreatePaymentUseCase', () => {
     getPaymentStatus: jest.fn(),
   };
 
+  const logger = {
+    log: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  };
+
   const useCase = new CreatePaymentUseCase(
     productRepository,
     transactionRepository,
     paymentGateway,
+    logger,
   );
 
   const product: Product = {
@@ -124,15 +133,30 @@ describe('CreatePaymentUseCase', () => {
     expect(productRepository.updateStock).not.toHaveBeenCalled();
   });
 
-  it('marks the transaction as ERROR when the gateway fails', async () => {
+  it('rolls back the transaction and throws when the gateway fails', async () => {
     productRepository.findById.mockResolvedValue(product);
     paymentGateway.tokenizeCard.mockRejectedValue(new Error('network error'));
 
-    const result = await useCase.execute(input);
+    await expect(useCase.execute(input)).rejects.toBeInstanceOf(
+      PaymentGatewayException,
+    );
 
-    expect(result.status).toBe(TransactionStatus.ERROR);
-    expect(result.externalId).toBeNull();
-    expect(transactionRepository.save).toHaveBeenCalledTimes(2);
+    expect(transactionRepository.save).toHaveBeenCalledTimes(1);
+    const pendingSave = transactionRepository.save.mock.calls[0][0];
+    expect(transactionRepository.delete).toHaveBeenCalledWith(pendingSave.id);
     expect(productRepository.updateStock).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  it('wraps non-Error failures before logging and rolling back', async () => {
+    productRepository.findById.mockResolvedValue(product);
+    paymentGateway.tokenizeCard.mockRejectedValue('unexpected failure');
+
+    await expect(useCase.execute(input)).rejects.toBeInstanceOf(
+      PaymentGatewayException,
+    );
+
+    expect(transactionRepository.delete).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(expect.any(Error));
   });
 });

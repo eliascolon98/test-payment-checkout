@@ -1,10 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { detectCardBrand } from '../../common/card-brand.util';
+import { ILogger } from '../../interface/logger.interface';
 import { IPaymentGateway } from '../../interface/services/payment-gateway.service.interface';
 import { IProductRepository } from '../../interface/services/product.repository.interface';
 import { ITransactionRepository } from '../../interface/services/transaction.repository.interface';
 import { TransactionStatus } from '../../model/enum/transaction-status.enum';
 import { InsufficientStockException } from '../../model/exceptions/insufficient-stock.exception';
+import { PaymentGatewayException } from '../../model/exceptions/payment-gateway.exception';
 import { ProductNotFoundException } from '../../model/exceptions/product-not-found.exception';
 import { CreateTransactionInput } from '../../model/types/create-transaction.type';
 import { Product } from '../../model/types/product.type';
@@ -15,6 +17,7 @@ export class CreatePaymentUseCase {
     private readonly productRepository: IProductRepository,
     private readonly transactionRepository: ITransactionRepository,
     private readonly paymentGateway: IPaymentGateway,
+    private readonly logger?: ILogger,
   ) {}
 
   async execute(input: CreateTransactionInput): Promise<Transaction> {
@@ -56,12 +59,12 @@ export class CreatePaymentUseCase {
         status: payment.status,
         updatedAt: new Date(),
       };
-    } catch {
-      transaction = {
-        ...transaction,
-        status: TransactionStatus.ERROR,
-        updatedAt: new Date(),
-      };
+    } catch (error) {
+      this.logger?.error(
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      await this.transactionRepository.delete(transaction.id);
+      throw new PaymentGatewayException();
     }
 
     await this.transactionRepository.save(transaction);

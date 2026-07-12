@@ -9,6 +9,7 @@ describe('TransactionRepository', () => {
   const ormRepository = {
     save: jest.fn(),
     findOne: jest.fn(),
+    delete: jest.fn(),
   };
 
   const repository = new TransactionRepository(
@@ -86,5 +87,11 @@ describe('TransactionRepository', () => {
     const result = await repository.findByReference('missing');
 
     expect(result).toBeNull();
+  });
+
+  it('delete removes the transaction by id', async () => {
+    await repository.delete('tx-1');
+
+    expect(ormRepository.delete).toHaveBeenCalledWith({ id: 'tx-1' });
   });
 });

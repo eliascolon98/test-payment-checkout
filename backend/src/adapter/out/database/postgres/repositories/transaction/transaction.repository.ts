@@ -27,4 +27,8 @@ export class TransactionRepository implements ITransactionRepository {
     const entity = await this.repository.findOne({ where: { reference } });
     return entity ? TransactionMapper.toDomain(entity) : null;
   }
+
+  async delete(id: string): Promise<void> {
+    await this.repository.delete({ id });
+  }
 }

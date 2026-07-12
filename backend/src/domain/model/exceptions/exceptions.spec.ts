@@ -1,6 +1,7 @@
 import { DomainException } from './domain.exception';
 import { InsufficientStockException } from './insufficient-stock.exception';
 import { InvalidTransactionStateException } from './invalid-transaction-state.exception';
+import { PaymentGatewayException } from './payment-gateway.exception';
 import { ProductNotFoundException } from './product-not-found.exception';
 import { TransactionNotFoundException } from './transaction-not-found.exception';
 
@@ -41,5 +42,13 @@ describe('Domain exceptions', () => {
     expect(exception.code).toBe('INVALID_TRANSACTION_STATE');
     expect(exception.message).toContain('APPROVED');
     expect(exception.message).toContain('PENDING');
+  });
+
+  it('PaymentGatewayException exposes code and message', () => {
+    const exception = new PaymentGatewayException();
+
+    expect(exception).toBeInstanceOf(DomainException);
+    expect(exception.code).toBe('PAYMENT_GATEWAY_ERROR');
+    expect(exception.message).toContain('payment provider');
   });
 });

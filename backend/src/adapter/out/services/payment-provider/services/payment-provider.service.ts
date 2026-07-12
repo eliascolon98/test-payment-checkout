@@ -35,23 +35,27 @@ export class PaymentProviderService implements IPaymentGateway {
   async tokenizeCard(
     request: TokenizeCardRequest,
   ): Promise<TokenizeCardResponse> {
-    const { data } = await axios.post<TokenizeCardApiResponse>(
-      `${this.apiUrl}/tokens/cards`,
-      {
-        number: request.number,
-        exp_month: request.expMonth,
-        exp_year: request.expYear,
-        cvc: request.cvc,
-        card_holder: request.cardHolder,
-      },
-      { headers: { Authorization: `Bearer ${this.publicKey}` } },
-    );
+    try {
+      const { data } = await axios.post<TokenizeCardApiResponse>(
+        `${this.apiUrl}/tokens/cards`,
+        {
+          number: request.number,
+          exp_month: request.expMonth,
+          exp_year: request.expYear,
+          cvc: request.cvc,
+          card_holder: request.cardHolder,
+        },
+        { headers: { Authorization: `Bearer ${this.publicKey}` } },
+      );
 
-    return {
-      tokenId: data.data.id,
-      brand: data.data.brand,
-      lastFour: data.data.last_four,
-    };
+      return {
+        tokenId: data.data.id,
+        brand: data.data.brand,
+        lastFour: data.data.last_four,
+      };
+    } catch (error) {
+      throw this.toGatewayError(error, 'tokenize card');
+    }
   }
 
   async createPayment(
@@ -64,34 +68,42 @@ export class PaymentProviderService implements IPaymentGateway {
       request.currency,
     );
 
-    const { data } = await axios.post<TransactionApiResponse>(
-      `${this.apiUrl}/transactions`,
-      {
-        amount_in_cents: request.amountInCents,
-        currency: request.currency,
-        customer_email: request.customerEmail,
-        reference: request.reference,
-        payment_method: {
-          type: 'CARD',
-          token: request.cardToken,
-          installments: request.installments,
+    try {
+      const { data } = await axios.post<TransactionApiResponse>(
+        `${this.apiUrl}/transactions`,
+        {
+          amount_in_cents: request.amountInCents,
+          currency: request.currency,
+          customer_email: request.customerEmail,
+          reference: request.reference,
+          payment_method: {
+            type: 'CARD',
+            token: request.cardToken,
+            installments: request.installments,
+          },
+          acceptance_token: acceptanceToken,
+          signature,
         },
-        acceptance_token: acceptanceToken,
-        signature,
-      },
-      { headers: { Authorization: `Bearer ${this.publicKey}` } },
-    );
+        { headers: { Authorization: `Bearer ${this.publicKey}` } },
+      );
 
-    return this.mapPaymentStatus(data);
+      return this.mapPaymentStatus(data);
+    } catch (error) {
+      throw this.toGatewayError(error, 'create payment');
+    }
   }
 
   async getPaymentStatus(externalId: string): Promise<PaymentStatusResponse> {
-    const { data } = await axios.get<TransactionApiResponse>(
-      `${this.apiUrl}/transactions/${externalId}`,
-      { headers: { Authorization: `Bearer ${this.publicKey}` } },
-    );
+    try {
+      const { data } = await axios.get<TransactionApiResponse>(
+        `${this.apiUrl}/transactions/${externalId}`,
+        { headers: { Authorization: `Bearer ${this.publicKey}` } },
+      );
 
-    return this.mapPaymentStatus(data);
+      return this.mapPaymentStatus(data);
+    } catch (error) {
+      throw this.toGatewayError(error, 'get payment status');
+    }
   }
 
   private mapPaymentStatus(
@@ -118,5 +130,16 @@ export class PaymentProviderService implements IPaymentGateway {
   ): string {
     const raw = `${reference}${amountInCents}${currency}${this.integritySecret}`;
     return createHash('sha256').update(raw).digest('hex');
+  }
+
+  private toGatewayError(error: unknown, operation: string): Error {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status ?? 'no-response';
+      const detail = JSON.stringify(error.response?.data ?? error.message);
+      return new Error(
+        `Payment provider failed to ${operation} (${status}): ${detail}`,
+      );
+    }
+    return error instanceof Error ? error : new Error(String(error));
   }
 }

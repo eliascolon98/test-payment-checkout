@@ -1,5 +1,6 @@
 import { ArgumentsHost, BadRequestException, HttpStatus } from '@nestjs/common';
 import { InsufficientStockException } from '../../domain/model/exceptions/insufficient-stock.exception';
+import { PaymentGatewayException } from '../../domain/model/exceptions/payment-gateway.exception';
 import { ProductNotFoundException } from '../../domain/model/exceptions/product-not-found.exception';
 import { ExceptionManager } from './exceptions-manager.filter';
 
@@ -33,6 +34,15 @@ describe('ExceptionManager', () => {
     expect(status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
     expect(json).toHaveBeenCalledWith(
       expect.objectContaining({ code: 'INSUFFICIENT_STOCK' }),
+    );
+  });
+
+  it('maps PaymentGatewayException to 502', () => {
+    filter.catch(new PaymentGatewayException(), host);
+
+    expect(status).toHaveBeenCalledWith(HttpStatus.BAD_GATEWAY);
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'PAYMENT_GATEWAY_ERROR' }),
     );
   });
 

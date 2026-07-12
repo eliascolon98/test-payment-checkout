@@ -11,6 +11,7 @@ describe('GetTransactionStatusUseCase', () => {
     save: jest.fn(),
     findById: jest.fn(),
     findByReference: jest.fn(),
+    delete: jest.fn(),
   };
   const paymentGateway: jest.Mocked<IPaymentGateway> = {
     tokenizeCard: jest.fn(),

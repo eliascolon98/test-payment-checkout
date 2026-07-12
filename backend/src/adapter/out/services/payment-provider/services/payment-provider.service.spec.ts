@@ -146,4 +146,70 @@ describe('PaymentProviderService', () => {
       expect(result.status).toBe(TransactionStatus.DECLINED);
     });
   });
+
+  describe('error translation', () => {
+    it('includes the provider response detail on API errors', async () => {
+      (mockedAxios.isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+      mockedAxios.post.mockRejectedValue({
+        response: {
+          status: 422,
+          data: { error: { type: 'INPUT_VALIDATION_ERROR' } },
+        },
+        message: 'Request failed with status code 422',
+      });
+
+      await expect(
+        service.tokenizeCard({
+          number: '4242424242424242',
+          expMonth: '08',
+          expYear: '28',
+          cvc: '123',
+          cardHolder: 'Test User',
+        }),
+      ).rejects.toThrow(
+        'Payment provider failed to tokenize card (422): {"error":{"type":"INPUT_VALIDATION_ERROR"}}',
+      );
+    });
+
+    it('rethrows non-axios errors unchanged', async () => {
+      (mockedAxios.isAxiosError as unknown as jest.Mock).mockReturnValue(false);
+      mockedAxios.get.mockRejectedValue(new Error('boom'));
+
+      await expect(service.getPaymentStatus('ext-1')).rejects.toThrow('boom');
+    });
+
+    it('handles network errors without response when creating a payment', async () => {
+      (mockedAxios.isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+      mockedAxios.get.mockResolvedValue({
+        data: {
+          data: {
+            presigned_acceptance: { acceptance_token: 'acceptance_123' },
+          },
+        },
+      });
+      mockedAxios.post.mockRejectedValue({ message: 'socket hang up' });
+
+      await expect(
+        service.createPayment({
+          reference: 'TX-ref',
+          amountInCents: 200000,
+          currency: 'COP',
+          cardToken: 'tok_123',
+          installments: 1,
+          customerEmail: 'customer@test.com',
+        }),
+      ).rejects.toThrow(
+        'Payment provider failed to create payment (no-response): "socket hang up"',
+      );
+    });
+
+    it('wraps non-Error thrown values into an Error', async () => {
+      (mockedAxios.isAxiosError as unknown as jest.Mock).mockReturnValue(false);
+      mockedAxios.get.mockRejectedValue('weird failure');
+
+      await expect(service.getPaymentStatus('ext-1')).rejects.toThrow(
+        'weird failure',
+      );
+    });
+  });
 });
