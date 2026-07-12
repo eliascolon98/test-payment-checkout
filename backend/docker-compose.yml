@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: payment-checkout-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payment_checkout
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: payment-checkout-api
+    restart: unless-stopped
+    profiles:
+      - full
+    depends_on:
+      - postgres
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/payment_checkout
+      PORT: 3001
+    ports:
+      - '3001:3001'
+
+volumes:
+  postgres_data:
