@@ -1,50 +1,34 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { CartItem, Product } from '../../../domain/models';
+import { clampQuantity } from '../../../domain/rules/stock';
 
 type CartState = {
-  items: CartItem[];
+  item: CartItem | null;
 };
 
 const initialState: CartState = {
-  items: [],
+  item: null,
 };
 
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addItem: (state, action: PayloadAction<Product>) => {
-      const existing = state.items.find(
-        (item) => item.product.id === action.payload.id,
-      );
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        state.items.push({ product: action.payload, quantity: 1 });
-      }
-    },
-    removeItem: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(
-        (item) => item.product.id !== action.payload,
-      );
-    },
-    setQuantity: (
+    selectItem: (
       state,
-      action: PayloadAction<{ productId: string; quantity: number }>,
+      action: PayloadAction<{ product: Product; quantity: number }>,
     ) => {
-      const item = state.items.find(
-        (i) => i.product.id === action.payload.productId,
-      );
-      if (item) {
-        item.quantity = Math.max(1, action.payload.quantity);
-      }
+      const { product, quantity } = action.payload;
+      state.item = {
+        product,
+        quantity: clampQuantity(quantity, product.stock),
+      };
     },
     clearCart: (state) => {
-      state.items = [];
+      state.item = null;
     },
   },
 });
 
-export const { addItem, removeItem, setQuantity, clearCart } =
-  cartSlice.actions;
+export const { selectItem, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;
