@@ -14,18 +14,20 @@ import { gateways } from '../../infrastructure';
 import { reduxStorage } from '../../infrastructure/storage/secure-storage';
 import cartReducer from './slices/cart.slice';
 import checkoutReducer from './slices/checkout.slice';
+import historyReducer from './slices/history.slice';
 import productsReducer from './slices/products.slice';
 
 const rootReducer = combineReducers({
   cart: cartReducer,
   checkout: checkoutReducer,
+  history: historyReducer,
   products: productsReducer,
 });
 
 const persistConfig = {
   key: 'root',
   storage: reduxStorage,
-  whitelist: ['cart', 'checkout'],
+  whitelist: ['cart', 'checkout', 'history'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
