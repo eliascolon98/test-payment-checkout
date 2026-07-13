@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -13,6 +14,7 @@ import { resetCheckout } from '../../application/store/slices/checkout.slice';
 import { loadProducts } from '../../application/usecases/load-products.usecase';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme/colors';
+import { showErrorToast } from '../utils/toast';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Result'>;
 
@@ -42,6 +44,14 @@ export const ResultScreen = ({ navigation }: Props) => {
   const { status, transaction, errorMessage } = useAppSelector(
     (state) => state.checkout,
   );
+
+  useEffect(() => {
+    if (status === 'error') {
+      showErrorToast(errorMessage ?? 'The payment could not be processed');
+    } else if (status === 'success' && transaction?.status === 'DECLINED') {
+      showErrorToast('Your card was declined. Please try another card.');
+    }
+  }, [status, transaction, errorMessage]);
 
   const backToProducts = () => {
     dispatch(clearCart());
