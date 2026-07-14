@@ -69,6 +69,13 @@ export const isValidExpiry = (
 /** Validates the CVC (3 or 4 digits). */
 export const isValidCvc = (cvc: string): boolean => /^\d{3,4}$/.test(cvc);
 
+/** Minimum length required by the payment provider for the cardholder name. */
+export const MIN_CARD_HOLDER_LENGTH = 5;
+
+/** Validates the cardholder name (at least 5 characters). */
+export const isValidCardHolder = (cardHolder: string): boolean =>
+  cardHolder.trim().length >= MIN_CARD_HOLDER_LENGTH;
+
 /** Maximum digits for the supported brands (VISA / MasterCard: 16). */
 export const MAX_CARD_DIGITS = 16;
 

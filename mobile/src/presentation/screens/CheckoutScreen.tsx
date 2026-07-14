@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,9 +11,11 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CardData } from '../../domain/models';
 import { formatCOP } from '../../domain/format/money';
-import { useAppSelector } from '../../application/store/hooks';
+import { useAppDispatch, useAppSelector } from '../../application/store/hooks';
+import { processPayment } from '../../application/usecases/process-payment.usecase';
 import { Backdrop } from '../components/Backdrop';
 import { CardForm } from '../components/CardForm';
+import { PaymentSummary } from '../components/PaymentSummary';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme/colors';
 
@@ -21,10 +23,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Checkout'>;
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-export const CheckoutScreen = (_props: Props) => {
+export const CheckoutScreen = ({ navigation }: Props) => {
+  const dispatch = useAppDispatch();
   const item = useAppSelector((state) => state.cart.item);
   const [email, setEmail] = useState('');
+  const [card, setCard] = useState<CardData | null>(null);
   const [showCardForm, setShowCardForm] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   const total = useMemo(
     () => (item ? item.product.price * item.quantity : 0),
@@ -41,17 +46,31 @@ export const CheckoutScreen = (_props: Props) => {
 
   const emailOk = isValidEmail(email);
 
-  const onCardSubmit = (card: CardData) => {
+  const onCardSubmit = (submitted: CardData) => {
+    setCard(submitted);
     setShowCardForm(false);
-    // Next step: open the payment summary backdrop and submit to the backend.
-    Alert.alert(
-      'Card validated',
-      `Brand detected, card ending in ${card.number.slice(-4)}.`,
+    setShowSummary(true);
+  };
+
+  const onPay = () => {
+    if (!card) {
+      return;
+    }
+    setShowSummary(false);
+    dispatch(
+      processPayment({
+        productId: item.product.id,
+        quantity: item.quantity,
+        customerEmail: email,
+        installments: 1,
+        card,
+      }),
     );
+    navigation.navigate('Result');
   };
 
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
       <View style={styles.card}>
         <Image source={{ uri: item.product.imageUrl }} style={styles.image} />
         <View style={styles.itemInfo}>
@@ -105,12 +124,29 @@ export const CheckoutScreen = (_props: Props) => {
       >
         <CardForm onSubmit={onCardSubmit} />
       </Backdrop>
-    </View>
+
+      <Backdrop
+        visible={showSummary}
+        title="Payment summary"
+        onClose={() => setShowSummary(false)}
+      >
+        {card && (
+          <PaymentSummary
+            item={item}
+            card={card}
+            total={total}
+            loading={false}
+            onPay={onPay}
+          />
+        )}
+      </Backdrop>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
+  screen: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl },
   center: {
     flex: 1,
     alignItems: 'center',

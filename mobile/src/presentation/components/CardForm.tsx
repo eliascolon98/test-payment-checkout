@@ -11,6 +11,7 @@ import {
   CVC_LENGTH,
   detectCardBrand,
   formatCardNumber,
+  isValidCardHolder,
   isValidCardNumber,
   isValidCvc,
   isValidExpiry,
@@ -41,7 +42,7 @@ export const CardForm = ({ onSubmit }: Props) => {
   const numberOk = isValidCardNumber(number);
   const expiryOk = isValidExpiry(expMonth, expYear);
   const cvcOk = isValidCvc(cvc);
-  const holderOk = cardHolder.trim().length > 0;
+  const holderOk = isValidCardHolder(cardHolder);
   const formValid = numberOk && expiryOk && cvcOk && holderOk;
 
   const error = (ok: boolean) => touched && !ok;
@@ -141,6 +142,11 @@ export const CardForm = ({ onSubmit }: Props) => {
           placeholderTextColor={colors.textMuted}
           testID="input-card-holder"
         />
+        {error(holderOk) && (
+          <Text style={styles.errorText}>
+            Enter the full name (at least 5 characters)
+          </Text>
+        )}
       </View>
 
       <TouchableOpacity

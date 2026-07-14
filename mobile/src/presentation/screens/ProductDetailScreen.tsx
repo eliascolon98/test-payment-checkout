@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   muted: { color: colors.textMuted },
-  image: { width: '100%', height: 260, backgroundColor: colors.border },
+  image: { width: '100%', aspectRatio: 16 / 9, maxHeight: 260, backgroundColor: colors.border },
   body: { padding: spacing.lg },
   name: { fontSize: 24, fontWeight: '800', color: colors.text },
   price: {
