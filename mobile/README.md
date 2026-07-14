@@ -1,97 +1,103 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Payment Checkout — Mobile
 
-# Getting Started
+React Native app implementing the 7-step credit card checkout flow, built with **hexagonal architecture** (ports & adapters), **Redux** (Flux) for state management, and **encrypted state persistence**.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Stack
 
-## Step 1: Start Metro
+- **React Native 0.86** (community CLI, TypeScript)
+- **Redux Toolkit** + **redux-persist** for state (Flux architecture)
+- **MMKV** with **AES-256 encryption** as the persistence backend (transaction data is never stored in plain text)
+- **React Navigation** (native stack) for the screen flow
+- **Axios** for the backend HTTP gateway
+- **Jest** + **@testing-library/react-native** for testing
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Architecture (hexagonal)
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+```
+src/
+├── domain/            # Pure business logic — no framework dependencies
+│   ├── models/        # Types (Product, Transaction, CardData…)
+│   ├── ports/         # Interfaces (IProductGateway, IPaymentGateway)
+│   ├── rules/         # card.ts (Luhn, brand detection, validation), stock.ts
+│   └── format/        # money.ts, date.ts
+├── application/       # Use cases and state (Redux)
+│   ├── store/         # configureStore, slices (cart, checkout, history, products)
+│   └── usecases/      # loadProducts, processPayment (thunks with injected gateways)
+├── infrastructure/    # Adapters (implement the domain ports)
+│   ├── http/          # HttpProductGateway, HttpPaymentGateway
+│   └── storage/       # Encrypted MMKV storage for redux-persist
+└── presentation/      # UI (screens, components, navigation, theme)
+```
 
-```sh
-# Using npm
+Gateways are injected into the thunks via Redux's `extraArgument`, so the application layer depends only on domain interfaces — never on axios or MMKV directly.
+
+## Screen flow (7 steps)
+
+1. **Splash** — animated brand intro
+2. **Products** — catalog loaded from the backend (pull-to-refresh, skeleton loaders)
+3. **Product detail** — image, stock, quantity selector, live total
+4. **Checkout** — order summary + customer email → "Pay with credit card"
+5. **Credit card form** (backdrop) — live validation, VISA/MasterCard logo detection
+6. **Payment summary** (backdrop) — confirm and pay
+7. **Result** — approved / declined / error status + transaction details
+
+Plus a **Purchase history** screen (encrypted, persisted across restarts).
+
+## Requirements
+
+- Node.js 22+
+- JDK 21
+- Android SDK + an emulator or device
+- The **backend running** (see the root README). The app targets `http://10.0.2.2:3001` on Android (host's `localhost` from the emulator).
+
+## Setup & run
+
+```bash
+cd mobile
+npm install
+
+# Terminal 1 — Metro
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# Terminal 2 — build & run on Android
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+> The Android emulator reaches the host machine at `10.0.2.2`. Make sure the backend is up on port `3001` before paying.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Install the prebuilt APK
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+A signed release APK (universal, ~67 MB) is available at **[`mobile/artifacts/app-release.apk`](artifacts/app-release.apk)**.
 
-```sh
-bundle install
+```bash
+# with an emulator/device connected
+adb install mobile/artifacts/app-release.apk
 ```
 
-Then, and every time you update your native dependencies, run:
+> The release build ships a `network_security_config.xml` that permits cleartext (HTTP) traffic **only** to the local development hosts (`10.0.2.2`, `localhost`, `127.0.0.1`) so the app can reach the local backend; every other domain still requires HTTPS. Start the backend before opening the app.
 
-```sh
-bundle exec pod install
+## Tests
+
+```bash
+cd mobile
+npm test              # run the suite
+npm test -- --coverage
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+The domain, application and infrastructure layers are unit-tested in isolation (gateways and MMKV are mocked); components and screens are tested with `@testing-library/react-native` and a test Redux store.
 
-```sh
-# Using npm
-npm run ios
+### Results
 
-# OR using Yarn
-yarn ios
+```
+Test Suites: 27 passed, 27 total
+Tests:       73 passed, 73 total
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+| Metric | Coverage |
+|---|---|
+| Statements | **98.34%** |
+| Branches | **93.37%** |
+| Functions | **95.41%** |
+| Lines | **98.27%** |
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+> Coverage collection excludes only wiring with no logic (theme, navigation, composition roots, barrels and the axios base client).

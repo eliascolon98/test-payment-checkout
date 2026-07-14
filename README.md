@@ -3,7 +3,7 @@
 Full-stack credit card payment checkout:
 
 - **`backend/`** — NestJS + TypeScript API with hexagonal architecture (ports & adapters). Product catalog, payment processing against the provider sandbox, transaction status tracking, stock management and delivery assignment.
-- **`mobile/`** — React Native app with the 7-step checkout flow (splash, product catalog, product selection, checkout, credit card form, payment summary and final status). _In progress._
+- **`mobile/`** — React Native app with the 7-step checkout flow (splash, product catalog, product selection, checkout, credit card form, payment summary and final status), hexagonal architecture, Redux (Flux) with AES-256 encrypted persistence, and a purchase history screen.
 
 ## Backend
 
@@ -75,4 +75,43 @@ Tests:       72 passed, 72 total
 
 ## Mobile app
 
-_In progress — instructions and test results will be added here._
+React Native app (community CLI, TypeScript) with hexagonal architecture, Redux Toolkit (Flux) and encrypted state persistence via MMKV (AES-256). Full setup, architecture and the 7-step flow are documented in **[`mobile/README.md`](mobile/README.md)**.
+
+### Setup & run
+
+```bash
+cd mobile
+npm install
+npm start            # Terminal 1: Metro
+npm run android      # Terminal 2: build & run (backend must be running on port 3001)
+```
+
+The Android emulator reaches the backend at `http://10.0.2.2:3001`.
+
+### Prebuilt APK
+
+Signed release APK: **[`mobile/artifacts/app-release.apk`](mobile/artifacts/app-release.apk)** — install with `adb install mobile/artifacts/app-release.apk`.
+
+## Mobile tests
+
+Unit tests with Jest and `@testing-library/react-native`. Domain, application and infrastructure layers are tested in isolation (gateways and MMKV mocked); components and screens use a test Redux store.
+
+```bash
+cd mobile
+npm test
+npm test -- --coverage
+```
+
+### Results
+
+```
+Test Suites: 27 passed, 27 total
+Tests:       73 passed, 73 total
+```
+
+| Metric | Coverage |
+|---|---|
+| Statements | **98.34%** |
+| Branches | **93.37%** |
+| Functions | **95.41%** |
+| Lines | **98.27%** |
