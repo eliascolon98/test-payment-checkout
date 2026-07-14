@@ -90,7 +90,7 @@ The Android emulator reaches the backend at `http://10.0.2.2:3001`.
 
 ### Prebuilt APK
 
-Signed release APK: **[`mobile/artifacts/app-release.apk`](mobile/artifacts/app-release.apk)** — install with `adb install mobile/artifacts/app-release.apk`.
+Download the signed release APK from the **[Releases page](https://github.com/eliascolon98/test-payment-checkout/releases/latest)** — install with `adb install app-release.apk`.
 
 The release APK works out of the box against the **cloud backend on Railway** (`https://test-payment-checkout-production.up.railway.app`) — no local server needed. Development builds automatically target the local backend instead (via `__DEV__`).
 

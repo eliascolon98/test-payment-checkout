@@ -67,11 +67,11 @@ npm run android
 
 ## Install the prebuilt APK
 
-A signed release APK (universal, ~67 MB) is available at **[`mobile/artifacts/app-release.apk`](artifacts/app-release.apk)**.
+Download the signed release APK (universal, ~67 MB) from the **[Releases page](https://github.com/eliascolon98/test-payment-checkout/releases/latest)**, then install it:
 
 ```bash
 # with an emulator/device connected
-adb install mobile/artifacts/app-release.apk
+adb install app-release.apk
 ```
 
 > **The release APK works out of the box** — it points to the cloud backend deployed on Railway (`https://test-payment-checkout-production.up.railway.app`), so no local server is required. The API base URL is selected automatically via React Native's `__DEV__` flag: development builds (Metro) use the local backend at `10.0.2.2:3001`, release builds use the cloud backend. See [`src/infrastructure/http/client.ts`](src/infrastructure/http/client.ts).

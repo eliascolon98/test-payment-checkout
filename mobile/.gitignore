@@ -2,6 +2,9 @@
 #
 .DS_Store
 
+# Release artifacts (distributed via GitHub Releases, not committed)
+artifacts/*.apk
+
 # Xcode
 #
 build/
