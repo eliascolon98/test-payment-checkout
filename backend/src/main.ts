@@ -34,12 +34,10 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new ExceptionManager());
   setupSwagger(app);
 
-  console.log('Attempting to listen on 0.0.0.0:3000...');
-  await app.listen(3000, '0.0.0.0').catch((err) => {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  });
-  console.log('✓ Server listening on 0.0.0.0:3000');
+  // Listen on 0.0.0.0 so the app is reachable inside a container (Railway),
+  // and honor the PORT provided by the platform (defaults to 3001 locally).
+  const port = process.env.PORT ?? 3001;
+  await app.listen(port, '0.0.0.0');
 }
 
 void bootstrap();

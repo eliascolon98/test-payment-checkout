@@ -7,5 +7,5 @@ export const envValidationSchema = Joi.object({
   PAYMENT_PRIVATE_KEY: Joi.string().required(),
   PAYMENT_INTEGRITY_SECRET: Joi.string().required(),
   PAYMENT_EVENTS_KEY: Joi.string().required(),
-  PORT: Joi.number().default(3000),
+  PORT: Joi.number().default(3001),
 });

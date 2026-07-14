@@ -10,11 +10,11 @@ describe('envValidationSchema', () => {
     PAYMENT_EVENTS_KEY: 'events_test',
   };
 
-  it('accepts a complete environment and defaults PORT to 3000', () => {
+  it('accepts a complete environment and defaults PORT to 3001', () => {
     const result = envValidationSchema.validate(validEnv);
 
     expect(result.error).toBeUndefined();
-    expect((result.value as { PORT: number }).PORT).toBe(3000);
+    expect((result.value as { PORT: number }).PORT).toBe(3001);
   });
 
   it('rejects a missing DATABASE_URL', () => {
