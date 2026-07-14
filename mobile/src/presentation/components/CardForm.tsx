@@ -17,7 +17,7 @@ import {
   isValidExpiry,
   sanitizeCardNumber,
 } from '../../domain/rules/card';
-import { colors, radius, spacing } from '../theme/colors';
+import { colors, radius, shadow, spacing } from '../theme/colors';
 import { CardBrandLogo } from './CardBrandLogo';
 import { Select, type SelectOption } from './Select';
 
@@ -152,10 +152,18 @@ export const CardForm = ({ onSubmit }: Props) => {
       <TouchableOpacity
         style={[styles.button, !formValid && styles.buttonDisabled]}
         onPress={submit}
+        activeOpacity={0.9}
         testID="submit-card"
       >
         <Text style={styles.buttonText}>Continue</Text>
       </TouchableOpacity>
+
+      <View style={styles.secureRow}>
+        <Text style={styles.secureIcon}>🔒</Text>
+        <Text style={styles.secureText}>
+          Your card data is encrypted and never stored
+        </Text>
+      </View>
     </View>
   );
 };
@@ -167,31 +175,41 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     fontSize: 16,
     color: colors.text,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
-  inputError: { borderColor: colors.error },
+  inputError: { borderColor: colors.error, backgroundColor: colors.errorLight },
   numberRow: { position: 'relative', justifyContent: 'center' },
   numberInput: { paddingRight: 60 },
   brand: { position: 'absolute', right: spacing.md },
-  errorText: { color: colors.error, fontSize: 12, marginTop: spacing.xs },
+  errorText: { color: colors.error, fontSize: 12, marginTop: spacing.xs, fontWeight: '500' },
   button: {
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     borderRadius: radius.md,
     alignItems: 'center',
     marginTop: spacing.sm,
+    ...shadow.md,
   },
-  buttonDisabled: { backgroundColor: colors.textMuted, opacity: 0.6 },
+  buttonDisabled: { backgroundColor: colors.textMuted, opacity: 0.5 },
   buttonText: { color: colors.surface, fontWeight: '700', fontSize: 16 },
+  secureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.md,
+    gap: 6,
+  },
+  secureIcon: { fontSize: 12 },
+  secureText: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
 });

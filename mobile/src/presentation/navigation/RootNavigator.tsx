@@ -22,10 +22,13 @@ export const RootNavigator = () => {
     <Stack.Navigator
       initialRouteName="Splash"
       screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '700' },
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        headerTintColor: colors.primary,
+        headerTitleStyle: { fontWeight: '800', color: colors.text, fontSize: 18 },
+        headerBackButtonDisplayMode: 'minimal',
         contentStyle: { backgroundColor: colors.background },
+        animation: 'slide_from_right',
       }}
     >
       <Stack.Screen

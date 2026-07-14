@@ -13,7 +13,7 @@ import { useAppDispatch, useAppSelector } from '../../application/store/hooks';
 import { selectItem } from '../../application/store/slices/cart.slice';
 import { QuantitySelector } from '../components/QuantitySelector';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, radius, spacing } from '../theme/colors';
+import { colors, radius, shadow, spacing } from '../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductDetail'>;
 
@@ -45,18 +45,31 @@ export const ProductDetailScreen = ({ route, navigation }: Props) => {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Image
-          source={{ uri: product.imageUrl }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <View style={styles.imageWrap}>
+          <Image
+            source={{ uri: product.imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
+
         <View style={styles.body}>
+          <View style={styles.stockPill}>
+            <View style={styles.stockDot} />
+            <Text style={styles.stockPillText}>
+              {product.stock} units available
+            </Text>
+          </View>
+
           <Text style={styles.name}>{product.name}</Text>
           <Text style={styles.price}>{formatCOP(product.price)}</Text>
-          <Text style={styles.description}>{product.description}</Text>
-          <Text style={styles.stock}>{product.stock} units available</Text>
 
-          <View style={styles.quantityRow}>
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionLabel}>Description</Text>
+          <Text style={styles.description}>{product.description}</Text>
+
+          <View style={styles.quantityCard}>
             <Text style={styles.quantityLabel}>Quantity</Text>
             <QuantitySelector
               value={quantity}
@@ -68,16 +81,18 @@ export const ProductDetailScreen = ({ route, navigation }: Props) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View>
+        <View style={styles.footerInfo}>
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalValue}>{formatCOP(total)}</Text>
         </View>
         <TouchableOpacity
           style={styles.cta}
           onPress={onContinue}
+          activeOpacity={0.9}
           testID="continue-checkout"
         >
           <Text style={styles.ctaText}>Continue</Text>
+          <Text style={styles.ctaArrow}>→</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -93,28 +108,78 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  muted: { color: colors.textMuted },
-  image: { width: '100%', aspectRatio: 16 / 9, maxHeight: 260, backgroundColor: colors.border },
+  muted: { color: colors.textMuted, fontSize: 15 },
+  imageWrap: {
+    backgroundColor: colors.surface,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    aspectRatio: 16 / 10,
+    maxHeight: 280,
+    backgroundColor: colors.borderLight,
+  },
   body: { padding: spacing.lg },
-  name: { fontSize: 24, fontWeight: '800', color: colors.text },
+  stockPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: colors.successLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: radius.full,
+    marginBottom: spacing.md,
+  },
+  stockDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+    marginRight: 6,
+  },
+  stockPillText: { fontSize: 12, fontWeight: '700', color: colors.success },
+  name: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
   price: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     color: colors.primary,
     marginTop: spacing.xs,
+    letterSpacing: -0.5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
   },
   description: {
     fontSize: 15,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-    lineHeight: 22,
+    color: colors.textSecondary,
+    lineHeight: 23,
   },
-  stock: { fontSize: 14, color: colors.success, marginTop: spacing.md },
-  quantityRow: {
+  quantityCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    ...shadow.sm,
   },
   quantityLabel: { fontSize: 16, fontWeight: '700', color: colors.text },
   footer: {
@@ -124,15 +189,32 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borderLight,
+    ...shadow.lg,
   },
-  totalLabel: { fontSize: 13, color: colors.textMuted },
-  totalValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  footerInfo: { flex: 1 },
+  totalLabel: {
+    fontSize: 12,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '600',
+  },
+  totalValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.5,
+  },
   cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
+    ...shadow.md,
   },
   ctaText: { color: colors.surface, fontWeight: '700', fontSize: 16 },
+  ctaArrow: { color: colors.surface, fontWeight: '700', fontSize: 18, marginLeft: spacing.sm },
 });

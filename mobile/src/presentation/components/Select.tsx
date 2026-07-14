@@ -7,7 +7,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { colors, radius, spacing } from '../theme/colors';
+import { colors, radius, shadow, spacing } from '../theme/colors';
 
 export type SelectOption = { label: string; value: string };
 
@@ -86,17 +86,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background,
   },
-  fieldError: { borderColor: colors.error },
-  value: { fontSize: 16, color: colors.text },
+  fieldError: { borderColor: colors.error, backgroundColor: colors.errorLight },
+  value: { fontSize: 16, color: colors.text, fontWeight: '600' },
   placeholder: { fontSize: 16, color: colors.textMuted },
-  chevron: { fontSize: 14, color: colors.textMuted },
+  chevron: { fontSize: 12, color: colors.textMuted },
   overlay: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -105,18 +105,19 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    maxHeight: 320,
+    borderRadius: radius.lg,
+    maxHeight: 340,
     overflow: 'hidden',
+    ...shadow.lg,
   },
   list: { flexGrow: 0 },
   option: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderLight,
   },
-  optionSelected: { backgroundColor: colors.background },
-  optionText: { fontSize: 16, color: colors.text, textAlign: 'center' },
+  optionSelected: { backgroundColor: colors.primaryGhost },
+  optionText: { fontSize: 16, color: colors.text, textAlign: 'center', fontWeight: '600' },
   optionTextSelected: { color: colors.primary, fontWeight: '800' },
 });
