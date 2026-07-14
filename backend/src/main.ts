@@ -34,7 +34,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new ExceptionManager());
   setupSwagger(app);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(3000, '0.0.0.0');
 }
 
 void bootstrap();
