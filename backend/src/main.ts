@@ -34,7 +34,12 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new ExceptionManager());
   setupSwagger(app);
 
-  await app.listen(process.env.PORT ?? 3000);
+  console.log('Attempting to listen on 0.0.0.0:3000...');
+  await app.listen(3000, '0.0.0.0').catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+  console.log('✓ Server listening on 0.0.0.0:3000');
 }
 
 void bootstrap();
