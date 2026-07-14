@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -69,7 +70,7 @@ export const CheckoutScreen = ({ navigation }: Props) => {
   };
 
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
       <View style={styles.card}>
         <Image source={{ uri: item.product.imageUrl }} style={styles.image} />
         <View style={styles.itemInfo}>
@@ -139,12 +140,13 @@ export const CheckoutScreen = ({ navigation }: Props) => {
           />
         )}
       </Backdrop>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
+  screen: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl },
   center: {
     flex: 1,
     alignItems: 'center',
