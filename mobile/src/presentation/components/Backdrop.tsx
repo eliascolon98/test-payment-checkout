@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { colors, radius, spacing } from '../theme/colors';
+import { colors, radius, shadow, spacing } from '../theme/colors';
 
 type Props = {
   visible: boolean;
@@ -56,7 +56,12 @@ export const Backdrop = ({ visible, title, onClose, children }: Props) => {
           <View style={styles.handle} />
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={12} testID="backdrop-close">
+            <Pressable
+              onPress={onClose}
+              hitSlop={12}
+              style={styles.closeButton}
+              testID="backdrop-close"
+            >
               <Text style={styles.close}>✕</Text>
             </Pressable>
           </View>
@@ -72,25 +77,39 @@ const styles = StyleSheet.create({
   avoider: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     padding: spacing.lg,
     paddingBottom: spacing.xl,
+    ...shadow.lg,
   },
   handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
+    width: 44,
+    height: 5,
+    borderRadius: 3,
     backgroundColor: colors.border,
     alignSelf: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
-  title: { fontSize: 20, fontWeight: '800', color: colors.text },
-  close: { fontSize: 18, color: colors.textMuted, fontWeight: '700' },
+  title: {
+    fontSize: 21,
+    fontWeight: '800',
+    color: colors.text,
+    letterSpacing: -0.3,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  close: { fontSize: 15, color: colors.textSecondary, fontWeight: '700' },
 });

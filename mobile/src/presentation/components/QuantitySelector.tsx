@@ -18,6 +18,7 @@ export const QuantitySelector = ({ value, min = 1, max, onChange }: Props) => {
         style={[styles.button, !canDecrease && styles.buttonDisabled]}
         onPress={() => canDecrease && onChange(value - 1)}
         disabled={!canDecrease}
+        activeOpacity={0.7}
         testID="quantity-decrease"
       >
         <Text style={styles.symbol}>−</Text>
@@ -31,6 +32,7 @@ export const QuantitySelector = ({ value, min = 1, max, onChange }: Props) => {
         style={[styles.button, !canIncrease && styles.buttonDisabled]}
         onPress={() => canIncrease && onChange(value + 1)}
         disabled={!canIncrease}
+        activeOpacity={0.7}
         testID="quantity-increase"
       >
         <Text style={styles.symbol}>+</Text>
@@ -43,25 +45,26 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    padding: 4,
   },
   button: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: radius.sm,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonDisabled: { opacity: 0.4 },
+  buttonDisabled: { opacity: 0.35 },
   symbol: { fontSize: 22, fontWeight: '700', color: colors.primary },
   value: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: colors.text,
-    minWidth: 48,
+    minWidth: 40,
     textAlign: 'center',
-    marginHorizontal: spacing.sm,
+    marginHorizontal: spacing.xs,
   },
 });

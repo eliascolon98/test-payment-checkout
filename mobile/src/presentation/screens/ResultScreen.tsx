@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,28 +14,37 @@ import { clearCart } from '../../application/store/slices/cart.slice';
 import { resetCheckout } from '../../application/store/slices/checkout.slice';
 import { loadProducts } from '../../application/usecases/load-products.usecase';
 import type { RootStackParamList } from '../navigation/types';
-import { colors, radius, spacing } from '../theme/colors';
+import { colors, radius, shadow, spacing } from '../theme/colors';
 import { showErrorToast } from '../utils/toast';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Result'>;
 
-type Visual = { icon: string; color: string; title: string; subtitle: string };
+type Visual = {
+  icon: string;
+  color: string;
+  halo: string;
+  title: string;
+  subtitle: string;
+};
 
 const APPROVED: Visual = {
   icon: '✓',
   color: colors.success,
+  halo: colors.successLight,
   title: 'Payment approved',
   subtitle: 'Your product is on its way.',
 };
 const DECLINED: Visual = {
   icon: '✕',
   color: colors.error,
+  halo: colors.errorLight,
   title: 'Payment declined',
   subtitle: 'The card was declined. Please try another card.',
 };
 const PENDING: Visual = {
   icon: '…',
   color: colors.warning,
+  halo: colors.warningLight,
   title: 'Payment pending',
   subtitle: 'We are still confirming your payment.',
 };
@@ -44,6 +54,19 @@ export const ResultScreen = ({ navigation }: Props) => {
   const { status, transaction, errorMessage } = useAppSelector(
     (state) => state.checkout,
   );
+  const scale = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (status === 'processing') {
+      return;
+    }
+    Animated.spring(scale, {
+      toValue: 1,
+      tension: 70,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, [status, scale]);
 
   useEffect(() => {
     if (status === 'error') {
@@ -63,65 +86,83 @@ export const ResultScreen = ({ navigation }: Props) => {
   if (status === 'processing') {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.processing}>Processing payment…</Text>
-      </View>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <View style={styles.center}>
-        <View style={[styles.badge, { backgroundColor: colors.error }]}>
-          <Text style={styles.badgeIcon}>!</Text>
+        <View style={styles.spinnerHalo}>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
-        <Text style={styles.title}>Something went wrong</Text>
-        <Text style={styles.subtitle}>{errorMessage}</Text>
-        <TouchableOpacity style={styles.button} onPress={backToProducts}>
-          <Text style={styles.buttonText}>Back to products</Text>
-        </TouchableOpacity>
+        <Text style={styles.processing}>Processing payment…</Text>
+        <Text style={styles.processingSub}>This will only take a moment</Text>
       </View>
     );
   }
 
-  const visual =
-    transaction?.status === 'APPROVED'
-      ? APPROVED
-      : transaction?.status === 'PENDING'
-        ? PENDING
-        : DECLINED;
+  const visual: Visual & { isError?: boolean } =
+    status === 'error'
+      ? {
+          icon: '!',
+          color: colors.error,
+          halo: colors.errorLight,
+          title: 'Something went wrong',
+          subtitle: errorMessage ?? 'The payment could not be processed',
+          isError: true,
+        }
+      : transaction?.status === 'APPROVED'
+        ? APPROVED
+        : transaction?.status === 'PENDING'
+          ? PENDING
+          : DECLINED;
 
   return (
     <View style={styles.center}>
-      <View style={[styles.badge, { backgroundColor: visual.color }]}>
-        <Text style={styles.badgeIcon}>{visual.icon}</Text>
-      </View>
+      <Animated.View style={[styles.halo, { backgroundColor: visual.halo, transform: [{ scale }] }]}>
+        <View style={[styles.badge, { backgroundColor: visual.color }]}>
+          <Text style={styles.badgeIcon}>{visual.icon}</Text>
+        </View>
+      </Animated.View>
+
       <Text style={styles.title}>{visual.title}</Text>
       <Text style={styles.subtitle}>{visual.subtitle}</Text>
 
-      {transaction && (
+      {!visual.isError && transaction && (
         <View style={styles.card}>
           <Row label="Reference" value={transaction.reference} />
+          <View style={styles.rowDivider} />
           <Row label="Amount" value={formatCOP(transaction.amountInCents)} />
+          <View style={styles.rowDivider} />
           <Row
             label="Card"
             value={`${transaction.cardBrand} •••• ${transaction.cardLastFour}`}
           />
-          <Row label="Status" value={transaction.status} />
+          <View style={styles.rowDivider} />
+          <Row label="Status" value={transaction.status} highlight={visual.color} />
         </View>
       )}
 
-      <TouchableOpacity style={styles.button} onPress={backToProducts}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={backToProducts}
+        activeOpacity={0.9}
+      >
         <Text style={styles.buttonText}>Back to products</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-const Row = ({ label, value }: { label: string; value: string }) => (
+const Row = ({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: string;
+  highlight?: string;
+}) => (
   <View style={styles.row}>
     <Text style={styles.rowLabel}>{label}</Text>
-    <Text style={styles.rowValue} numberOfLines={1}>
+    <Text
+      style={[styles.rowValue, highlight ? { color: highlight } : null]}
+      numberOfLines={1}
+    >
       {value}
     </Text>
   </View>
@@ -135,7 +176,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     padding: spacing.lg,
   },
-  processing: { marginTop: spacing.md, color: colors.textMuted, fontSize: 16 },
+  spinnerHalo: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: colors.primaryGhost,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  processing: {
+    marginTop: spacing.lg,
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  processingSub: { marginTop: spacing.xs, color: colors.textMuted, fontSize: 14 },
+  halo: {
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   badge: {
     width: 84,
     height: 84,
@@ -149,31 +211,33 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.text,
     marginTop: spacing.lg,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 15,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     marginTop: spacing.xs,
     textAlign: 'center',
+    lineHeight: 21,
   },
   card: {
     width: '100%',
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
     marginTop: spacing.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    ...shadow.sm,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
   },
+  rowDivider: { height: 1, backgroundColor: colors.borderLight },
   rowLabel: { fontSize: 14, color: colors.textMuted },
   rowValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
     flexShrink: 1,
     marginLeft: spacing.md,
@@ -186,6 +250,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     alignSelf: 'stretch',
     alignItems: 'center',
+    ...shadow.md,
   },
   buttonText: { color: colors.surface, fontWeight: '700', fontSize: 16 },
 });

@@ -1,6 +1,5 @@
 import { useCallback, useEffect } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -13,10 +12,18 @@ import type { Product } from '../../domain/models';
 import { useAppDispatch, useAppSelector } from '../../application/store/hooks';
 import { loadProducts } from '../../application/usecases/load-products.usecase';
 import { ProductCard } from '../components/ProductCard';
+import { SkeletonCard } from '../components/SkeletonCard';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, spacing } from '../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+
+const Header = () => (
+  <View style={styles.header}>
+    <Text style={styles.greeting}>Discover</Text>
+    <Text style={styles.title}>Featured products</Text>
+  </View>
+);
 
 export const HomeScreen = ({ navigation }: Props) => {
   const dispatch = useAppDispatch();
@@ -38,9 +45,13 @@ export const HomeScreen = ({ navigation }: Props) => {
 
   if (status === 'loading' && items.length === 0) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.muted}>Loading products…</Text>
+      <View style={styles.screen}>
+        <Header />
+        <View style={styles.skeletonGrid}>
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </View>
       </View>
     );
   }
@@ -48,11 +59,15 @@ export const HomeScreen = ({ navigation }: Props) => {
   if (status === 'failed' && items.length === 0) {
     return (
       <View style={styles.center}>
+        <View style={styles.errorIcon}>
+          <Text style={styles.errorIconText}>!</Text>
+        </View>
         <Text style={styles.errorTitle}>Something went wrong</Text>
         <Text style={styles.muted}>{errorMessage}</Text>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={() => dispatch(loadProducts())}
+          activeOpacity={0.85}
         >
           <Text style={styles.retryText}>Try again</Text>
         </TouchableOpacity>
@@ -65,7 +80,9 @@ export const HomeScreen = ({ navigation }: Props) => {
       data={items}
       keyExtractor={(item) => item.id}
       numColumns={2}
+      style={styles.screen}
       contentContainerStyle={styles.list}
+      ListHeaderComponent={Header}
       renderItem={({ item }) => (
         <ProductCard product={item} onPress={openProduct} />
       )}
@@ -86,7 +103,28 @@ export const HomeScreen = ({ navigation }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.sm, backgroundColor: colors.background },
+  screen: { flex: 1, backgroundColor: colors.background },
+  list: { paddingHorizontal: spacing.sm, paddingBottom: spacing.lg },
+  header: { paddingHorizontal: spacing.sm, paddingTop: spacing.md, paddingBottom: spacing.sm },
+  greeting: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: colors.text,
+    marginTop: 2,
+    letterSpacing: -0.5,
+  },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.sm,
+  },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -94,18 +132,24 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.background,
   },
-  muted: {
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-    textAlign: 'center',
+  muted: { color: colors.textMuted, marginTop: spacing.sm, textAlign: 'center' },
+  errorIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.errorLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
   },
-  errorTitle: { fontSize: 18, fontWeight: '700', color: colors.error },
+  errorIconText: { fontSize: 32, fontWeight: '800', color: colors.error },
+  errorTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
   retryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
-  retryText: { color: colors.surface, fontWeight: '700' },
+  retryText: { color: colors.surface, fontWeight: '700', fontSize: 15 },
 });
