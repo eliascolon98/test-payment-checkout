@@ -92,6 +92,15 @@ The Android emulator reaches the backend at `http://10.0.2.2:3001`.
 
 Signed release APK: **[`mobile/artifacts/app-release.apk`](mobile/artifacts/app-release.apk)** — install with `adb install mobile/artifacts/app-release.apk`.
 
+The release APK works out of the box against the **cloud backend on Railway** (`https://test-payment-checkout-production.up.railway.app`) — no local server needed. Development builds automatically target the local backend instead (via `__DEV__`).
+
+### Cloud deployment
+
+The backend is deployed on **Railway** using the existing `backend/Dockerfile` and a managed PostgreSQL instance:
+
+- API: `https://test-payment-checkout-production.up.railway.app`
+- Health: [`/health`](https://test-payment-checkout-production.up.railway.app/health) · Swagger: [`/api/docs`](https://test-payment-checkout-production.up.railway.app/api/docs)
+
 ## Mobile tests
 
 Unit tests with Jest and `@testing-library/react-native`. Domain, application and infrastructure layers are tested in isolation (gateways and MMKV mocked); components and screens use a test Redux store.

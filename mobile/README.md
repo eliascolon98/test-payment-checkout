@@ -74,7 +74,7 @@ A signed release APK (universal, ~67 MB) is available at **[`mobile/artifacts/ap
 adb install mobile/artifacts/app-release.apk
 ```
 
-> The release build ships a `network_security_config.xml` that permits cleartext (HTTP) traffic **only** to the local development hosts (`10.0.2.2`, `localhost`, `127.0.0.1`) so the app can reach the local backend; every other domain still requires HTTPS. Start the backend before opening the app.
+> **The release APK works out of the box** — it points to the cloud backend deployed on Railway (`https://test-payment-checkout-production.up.railway.app`), so no local server is required. The API base URL is selected automatically via React Native's `__DEV__` flag: development builds (Metro) use the local backend at `10.0.2.2:3001`, release builds use the cloud backend. See [`src/infrastructure/http/client.ts`](src/infrastructure/http/client.ts).
 
 ## Tests
 
