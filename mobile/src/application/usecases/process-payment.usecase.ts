@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import type { CreatePaymentPayload, Transaction } from '../../domain/models';
 import type { Gateways } from '../../domain/ports';
 
-const POLL_ATTEMPTS = 5;
+const POLL_ATTEMPTS = 10;
 const POLL_DELAY_MS = 1500;
 
 const delay = (ms: number) =>

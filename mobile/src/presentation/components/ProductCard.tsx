@@ -1,7 +1,8 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { formatCOP } from '../../domain/format/money';
 import type { Product } from '../../domain/models';
 import { colors, radius, shadow, spacing } from '../theme/colors';
+import { FadeInImage } from './FadeInImage';
 
 type Props = {
   product: Product;
@@ -26,11 +27,7 @@ export const ProductCard = ({ product, onPress }: Props) => {
       testID={`product-card-${product.id}`}
     >
       <View style={styles.imageWrap}>
-        <Image
-          source={{ uri: product.imageUrl }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <FadeInImage uri={product.imageUrl} style={styles.image} />
         <View style={styles.imageOverlay} />
         <View style={styles.stockBadge}>
           <View style={[styles.stockDot, { backgroundColor: dotColor }]} />

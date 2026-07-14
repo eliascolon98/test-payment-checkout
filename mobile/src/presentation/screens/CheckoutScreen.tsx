@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +14,7 @@ import { useAppDispatch, useAppSelector } from '../../application/store/hooks';
 import { processPayment } from '../../application/usecases/process-payment.usecase';
 import { Backdrop } from '../components/Backdrop';
 import { CardForm } from '../components/CardForm';
+import { FadeInImage } from '../components/FadeInImage';
 import { PaymentSummary } from '../components/PaymentSummary';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme/colors';
@@ -73,7 +73,7 @@ export const CheckoutScreen = ({ navigation }: Props) => {
     <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
       <Text style={styles.sectionTitle}>Your order</Text>
       <View style={styles.card}>
-        <Image source={{ uri: item.product.imageUrl }} style={styles.image} />
+        <FadeInImage uri={item.product.imageUrl} style={styles.image} />
         <View style={styles.itemInfo}>
           <Text style={styles.name} numberOfLines={2}>
             {item.product.name}

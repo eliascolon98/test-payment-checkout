@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { formatCOP } from '../../domain/format/money';
 import { useAppDispatch, useAppSelector } from '../../application/store/hooks';
 import { selectItem } from '../../application/store/slices/cart.slice';
+import { FadeInImage } from '../components/FadeInImage';
 import { QuantitySelector } from '../components/QuantitySelector';
 import type { RootStackParamList } from '../navigation/types';
 import { colors, radius, shadow, spacing } from '../theme/colors';
@@ -46,11 +46,7 @@ export const ProductDetailScreen = ({ route, navigation }: Props) => {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.imageWrap}>
-          <Image
-            source={{ uri: product.imageUrl }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          <FadeInImage uri={product.imageUrl} style={styles.image} />
         </View>
 
         <View style={styles.body}>
