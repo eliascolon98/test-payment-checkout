@@ -19,10 +19,10 @@ cd backend
 npm install
 cp .env.example .env   # fill in the sandbox API keys
 docker compose up -d   # PostgreSQL on port 5433
-npm run start:dev      # API on http://localhost:3001
+npm run start:dev      # API on http://localhost:3000
 ```
 
-Products are seeded automatically on first boot. Interactive API docs (Swagger): **`http://localhost:3001/api/docs`**
+Products are seeded automatically on first boot. Interactive API docs (Swagger): **`http://localhost:3000/api/docs`**
 
 Fully containerized alternative (production Dockerfile):
 
@@ -83,10 +83,10 @@ React Native app (community CLI, TypeScript) with hexagonal architecture, Redux 
 cd mobile
 npm install
 npm start            # Terminal 1: Metro
-npm run android      # Terminal 2: build & run (backend must be running on port 3001)
+npm run android      # Terminal 2: build & run (backend must be running on port 3000)
 ```
 
-The Android emulator reaches the backend at `http://10.0.2.2:3001`.
+The Android emulator reaches the backend at `http://10.0.2.2:3000`.
 
 ### Prebuilt APK
 
